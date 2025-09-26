@@ -1,5 +1,5 @@
 ---
-title: "ECO353 Data Project #1 - XYZ"
+title: "ECO353 Data Project #1 - NBA Player Salaries and Team Winning Percentage (%)"
 author: Jared Madarang and Jeffrey Chu
 output: pdf_document
 ---
@@ -7,4 +7,44 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
+
+
+```{r setup, include=FALSE}
+install.packages("tidyverse")
+install.packages("jtools")
+install.packages("collapse")
+install.packages("RCurl")
+install.packages("corrplot")
+install.packages("dplyr")
+library(tidyverse)
+library(jtools)
+library(collapse)
+library(RCurl)
+library(corrplot)
+library(dplyr)
+```
+
+
+## Data Collection: Merging NBA Player Salaries and Team Winning Percentage (%)
+
+**NBA Player Salaries (YEARSTART-YEAREND)**
+
+```{r}
+url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/main/salaries_1985to2018.csv")
+nba.salaries <- read.csv(text = url)
+nba.salaries <- nba.salaries %>% select(team, playerid, salary, seasonstart)
+head(nba.salaries)
+```
+
+**NBA Team Winning Percentage (YEARSTART-YEAREND)**
+
+```{r}
+url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/main/nba_team_win.csv")
+nba.teamwin <- read.csv(text = url)
+nba.teamwin <- nba.teamwin %>% select(team, record, winpercent, seasonstart)
+head(nba.teamwin)
+```
+
+
+
 
