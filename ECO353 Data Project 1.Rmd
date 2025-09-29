@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
 
-```{r setup, include=FALSE}
+```{r, include = FALSE}
 install.packages("tidyverse")
 install.packages("jtools")
 install.packages("collapse")
@@ -33,7 +33,7 @@ library(dplyr)
 url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/main/salaries_1985to2018.csv")
 nba.salaries <- read.csv(text = url)
 nba.salaries <- nba.salaries %>% select(team, playerid, salary, seasonstart)
-head(nba.salaries)
+nba.salaries %>% arrange(desc(salary)) %>% head()
 ```
 
 **NBA Team Winning Percentage (YEARSTART-YEAREND)**
@@ -44,7 +44,4 @@ nba.teamwin <- read.csv(text = url)
 nba.teamwin <- nba.teamwin %>% select(team, record, winpercent, seasonstart)
 head(nba.teamwin)
 ```
-
-
-
 
