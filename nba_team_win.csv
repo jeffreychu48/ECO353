@@ -163,7 +163,7 @@ Bulls,17-65,0.207,1999,2000,Bulls
 Bulls,13-37,0.26,1998,1999,Bulls
 Bulls,62-20,0.756,1997,1998,Bulls
 Bulls,69-13,0.841,1996,1997,Bulls
-Bulls,Oct-72,0.878,1995,1996,Bulls
+Bulls,72-10,0.878,1995,1996,Bulls
 Bulls,47-35,0.573,1994,1995,Bulls
 Bulls,55-27,0.671,1993,1994,Bulls
 Bulls,57-25,0.695,1992,1993,Bulls
@@ -333,7 +333,7 @@ Pistons,21-61,0.256,1980,1981,Pistons
 Pistons,16-66,0.195,1979,1980,Pistons
 Warriors,58-24,0.707,2017,2018,Warriors
 Warriors,67-15,0.817,2016,2017,Warriors
-Warriors,Sep-73,0.89,2015,2016,Warriors
+Warriors,73-9,0.89,2015,2016,Warriors
 Warriors,67-15,0.817,2014,2015,Warriors
 Warriors,51-31,0.622,2013,2014,Warriors
 Warriors,47-35,0.573,2012,2013,Warriors
@@ -1051,4 +1051,5 @@ Bullets,40-42,0.488,1984,1985,Wizards
 Bullets,35-47,0.427,1983,1984,Wizards
 Bullets,42-40,0.512,1982,1983,Wizards
 Bullets,43-39,0.524,1981,1982,Wizards
+
 Bullets,39-43,0.476,1980,1981,Wizards
