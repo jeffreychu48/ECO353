@@ -16,12 +16,16 @@ install.packages("collapse")
 install.packages("RCurl")
 install.packages("corrplot")
 install.packages("dplyr")
+install.packages("ineq")
+install.packages("DescTools")
 library(tidyverse)
 library(jtools)
 library(collapse)
 library(RCurl)
 library(corrplot)
 library(dplyr)
+library(ineq)
+library(DescTools)
 ```
 
 
@@ -44,4 +48,53 @@ nba.teamwin <- read.csv(text = url)
 nba.teamwin <- nba.teamwin %>% select(team, record, winpercent, seasonstart)
 head(nba.teamwin)
 ```
+
+**Team Salary Distribution**
+
+Gini coefficient by team and seasonstart
+
+```{r}
+gini.allyears <- nba.salaries %>% 
+  group_by(team, seasonstart) %>%   
+  summarise(gini = Gini(salary, na.rm = TRUE), 
+            .groups = "drop") %>% 
+  arrange(seasonstart, team) 
+
+gini.allyears <- gini.allyears %>% arrange(desc(gini))
+
+gini.allyears %>% head()
+
+```
+
+Gini Coefficient over Time
+
+```{r}
+ggplot(data = gini.allyears, aes(x = seasonstart, y = gini, color = team)) +
+  geom_point(size = 2) +
+  geom_smooth(method="lm", se = TRUE, color="black") +
+  ggtitle("Gini Salary Coefficient over Time")
+```
+
+
+
+**Team Salary Distribution and Team Wins**
+
+Gini coefficient by team and seasonstart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
