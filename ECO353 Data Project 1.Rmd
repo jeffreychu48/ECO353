@@ -8,7 +8,6 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
-
 ```{r, include = FALSE}
 install.packages("tidyverse")
 install.packages("jtools")
@@ -28,8 +27,7 @@ library(ineq)
 library(DescTools)
 ```
 
-
-## Data Collection: Merging NBA Player Salaries and Team Winning Percentage (%)
+# Data Collection: Merging NBA Player Salaries and Team Winning Percentage (%)
 
 **NBA Player Salaries (YEARSTART-YEAREND)**
 
@@ -49,9 +47,9 @@ nba.teamwin <- nba.teamwin %>% select(team, record, winpercent, seasonstart)
 head(nba.teamwin)
 ```
 
-**Team Salary Distribution**
+# Team Salary Distribution
 
-Gini coefficient by team and seasonstart
+**Gini coefficient by team and seasonstart**
 
 ```{r}
 gini.allyears <- nba.salaries %>% 
@@ -63,10 +61,9 @@ gini.allyears <- nba.salaries %>%
 gini.allyears <- gini.allyears %>% arrange(desc(gini))
 
 gini.allyears %>% head()
-
 ```
 
-Gini Coefficient over Time
+**Gini coefficient over Time**
 
 ```{r}
 ggplot(data = gini.allyears, aes(x = seasonstart, y = gini, color = team)) +
@@ -75,26 +72,18 @@ ggplot(data = gini.allyears, aes(x = seasonstart, y = gini, color = team)) +
   ggtitle("Gini Salary Coefficient over Time")
 ```
 
+# Team Salary Distribution and Team Wins
 
+```{r}
+gini.wins.allyears <- left_join(
+  x = gini.allyears, 
+  y = nba.teamwin, 
+  by = c("team", "seasonstart"))
+```
 
-**Team Salary Distribution and Team Wins**
-
-Gini coefficient by team and seasonstart
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```{r}
+ggplot(data = gini.wins.allyears, aes(x = gini, y = winpercent, color = team)) +
+  geom_point(size = 2) +
+  geom_smooth(method="lm", se = TRUE, color="black") +
+  ggtitle("Gini Salary Coefficient vs. Win Percentage")
+```
