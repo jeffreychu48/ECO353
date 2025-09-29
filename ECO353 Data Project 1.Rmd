@@ -17,6 +17,7 @@ install.packages("corrplot")
 install.packages("dplyr")
 install.packages("ineq")
 install.packages("DescTools")
+install.packages("huxtable")
 library(tidyverse)
 library(jtools)
 library(collapse)
@@ -25,11 +26,12 @@ library(corrplot)
 library(dplyr)
 library(ineq)
 library(DescTools)
+library(huxtable)
 ```
 
 # Data Collection: Merging NBA Player Salaries and Team Winning Percentage (%)
 
-**NBA Player Salaries (YEARSTART-YEAREND)**
+**NBA Player Salaries (1984-2017)**
 
 ```{r}
 url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/main/salaries_1985to2018.csv")
@@ -38,7 +40,7 @@ nba.salaries <- nba.salaries %>% select(team, playerid, salary, seasonstart)
 nba.salaries %>% arrange(desc(salary)) %>% head()
 ```
 
-**NBA Team Winning Percentage (YEARSTART-YEAREND)**
+**NBA Team Winning Percentage (1980-2017)**
 
 ```{r}
 url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/main/nba_team_win.csv")
@@ -47,7 +49,9 @@ nba.teamwin <- nba.teamwin %>% select(team, record, winpercent, seasonstart)
 head(nba.teamwin)
 ```
 
-# Team Salary Distribution
+# Team Salary Distribution (1984-2017)
+
+Salary Distribution quantified by using the Gini coefficient
 
 **Gini coefficient by team and seasonstart**
 
@@ -58,7 +62,9 @@ gini.allyears <- nba.salaries %>%
             .groups = "drop") %>% 
   arrange(seasonstart, team) 
 
-gini.allyears <- gini.allyears %>% arrange(desc(gini))
+gini.allyears <- gini.allyears %>% 
+  arrange(desc(gini)) %>% 
+    drop_na(gini)
 
 gini.allyears %>% head()
 ```
@@ -69,11 +75,12 @@ gini.allyears %>% head()
 ggplot(data = gini.allyears, aes(x = seasonstart, y = gini, color = team)) +
   geom_point(size = 2) +
   geom_smooth(method="lm", se = TRUE, color="black") +
-  ggtitle("Gini Salary Coefficient over Time")
+  ggtitle("Gini Salary Coefficient over Time (1984 to 2017)")
 ```
 
-# Team Salary Distribution and Team Wins
+# Team Salary Distribution and Team Wins (1984-2017)
 
+**Merging Team Wins to Team Gini dataset**
 ```{r}
 gini.wins.allyears <- left_join(
   x = gini.allyears, 
@@ -81,9 +88,85 @@ gini.wins.allyears <- left_join(
   by = c("team", "seasonstart"))
 ```
 
+**Correlation between Team Wins and Gini Coefficient**
 ```{r}
-ggplot(data = gini.wins.allyears, aes(x = gini, y = winpercent, color = team)) +
+ggplot(data = gini.wins.allyears, aes(x = gini, y = winpercent, color = seasonstart)) +
   geom_point(size = 2) +
   geom_smooth(method="lm", se = TRUE, color="black") +
-  ggtitle("Gini Salary Coefficient vs. Win Percentage")
+  ggtitle("Gini Salary Coefficient vs. Win Percentage (1984 to 2017)")
 ```
+
+**Regression of Team Wins and Gini Coefficient**
+
+```{r}
+reg.allyears <- lm(winpercent ~ gini, data=gini.wins.allyears)
+summ(reg.allyears, digits=5)
+```
+
+
+**Regression of Team Wins and Gini Coefficient, Holding Seasons Constant**
+
+```{r}
+reg.allyears.season <- lm(winpercent ~ gini + seasonstart, data=gini.wins.allyears)
+summ(reg.allyears.season, digits=5)
+```
+
+
+# Team Salary Distribution and Team Wins (2005-2015)
+
+```{r}
+gini.2005to2015 <- nba.salaries %>% 
+  group_by(team, seasonstart) %>%   
+  filter(seasonstart >= 2005 & seasonstart <= 2015) %>% 
+  summarise(gini = Gini(salary, na.rm = TRUE), 
+            .groups = "drop") %>% 
+  arrange(seasonstart, team) 
+
+gini.2005to2015 <- gini.2005to2015 %>% 
+  arrange(gini) %>% 
+    drop_na(gini)
+
+gini.2005to2015 %>% head()
+```
+
+**Gini coefficient over Time**
+
+```{r}
+ggplot(data = gini.2005to2015, aes(x = seasonstart, y = gini, color = team)) +
+  geom_point(size = 2) +
+  geom_smooth(method="lm", se = TRUE, color="black") +
+  ggtitle("Gini Salary Coefficient over Time (2005-2015)")
+```
+
+Superstar Teams in this Era: 
+
+*2007-08 Boston Celtics*
+*Super stars: Paul Pierce, Kevin Garnett, Ray Allen*
+
+*2010-11 Miami Heat*
+*Super stars: LeBron James, Chris Bosh, Dwyane Wade*
+
+*2012-13 Los Angeles Lakers*
+*Super stars: Kobe Bryant, Dwight Howard, Steve Nash, Pau Gasol*
+
+
+# Team Salary Distribution and Team Wins (2005-2015)
+
+**Merging Team Wins to Team Gini dataset**
+```{r}
+gini.wins.2005to2015 <- left_join(
+  x = gini.2005to2015, 
+  y = nba.teamwin, 
+  by = c("team", "seasonstart"))
+```
+
+**Correlation between Team Wins and Gini Coefficient**
+```{r}
+ggplot(data = gini.wins.2005to2015, aes(x = gini, y = winpercent, color = seasonstart)) +
+  geom_point(size = 2) +
+  geom_smooth(method="lm", se = TRUE, color="black") +
+  ggtitle("Gini Salary Coefficient vs. Win Percentage (2005 to 2015)")
+```
+
+
+
