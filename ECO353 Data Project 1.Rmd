@@ -29,7 +29,7 @@ library(DescTools)
 library(huxtable)
 ```
 
-# Data Collection: Merging NBA Player Salaries and Team Winning Percentage (%)
+# 1.0 Data Collection: Merging NBA Player Salaries and Team Winning Percentage (%)
 
 **NBA Player Salaries (1984-2017)**
 
@@ -37,7 +37,6 @@ library(huxtable)
 url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/main/salaries_1985to2018.csv")
 nba.salaries <- read.csv(text = url)
 nba.salaries <- nba.salaries %>% select(team, playerid, salary, seasonstart)
-nba.salaries %>% arrange(desc(salary)) %>% head()
 ```
 
 **NBA Team Winning Percentage (1980-2017)**
@@ -46,28 +45,117 @@ nba.salaries %>% arrange(desc(salary)) %>% head()
 url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/main/nba_team_win.csv")
 nba.teamwin <- read.csv(text = url)
 nba.teamwin <- nba.teamwin %>% select(team, record, winpercent, seasonstart)
-head(nba.teamwin)
 ```
 
-# Team Salary Distribution (1984-2017)
 
-Salary Distribution quantified by using the Gini coefficient
+## Team Salary Distribution (1984-2017)
+
+**Total Team Salary by team and seasonstart**
+  
+```{r}
+nba.salaries.with.total <- nba.salaries %>%
+  group_by(team, seasonstart) %>%
+  mutate(totalteamsalary = sum(salary, na.rm = TRUE)) %>%
+  ungroup()
+```
 
 **Gini coefficient by team and seasonstart**
 
-```{r}
-gini.allyears <- nba.salaries %>% 
-  group_by(team, seasonstart) %>%   
-  summarise(gini = Gini(salary, na.rm = TRUE), 
-            .groups = "drop") %>% 
-  arrange(seasonstart, team) 
+Salary Distribution quantified by using the Gini coefficient
 
+```{r}
+gini.allyears <- nba.salaries.with.total %>% 
+  group_by(team, seasonstart) %>%   
+  summarise(
+    gini = Gini(salary, na.rm = TRUE),
+    totalteamsalary = max(totalteamsalary), 
+    .groups = "drop") %>%
+  arrange(seasonstart, team) 
+```
+
+```{r}
 gini.allyears <- gini.allyears %>% 
   arrange(desc(gini)) %>% 
     drop_na(gini)
-
-gini.allyears %>% head()
 ```
+
+## Team Salary Distribution and Team Wins (1984-2017)
+
+**Merging Team Wins to Team Gini dataset**
+```{r}
+gini.wins.allyears <- left_join(
+  x = gini.allyears, 
+  y = nba.teamwin, 
+  by = c("team", "seasonstart"))
+
+gini.wins.allyears %>% head()
+```
+
+
+# 1.1 Team analysis
+
+For the Miami Heat
+
+
+**Filtering Dataset for the Miami Heat**
+```{r}
+gini.wins.allyears.heat <- gini.wins.allyears %>% 
+  filter(team == "Heat") %>% 
+  arrange(desc(seasonstart))
+```
+
+
+**Gini coefficient over Time**
+
+```{r}
+ggplot(data = gini.wins.allyears.heat, aes(x = seasonstart, y = gini)) +
+  geom_point(size = 2) +
+  geom_smooth(method="loess", se = TRUE, color="black") +
+  geom_line(color = "red", linewidth = 0.8) +
+  ggtitle("Miami Heat Gini Salary Coefficient over Time (1984 to 2017)")
+```
+
+
+**Win Percent over Time**
+
+```{r}
+ggplot(data = gini.wins.allyears.heat, aes(x = seasonstart, y = winpercent)) +
+  geom_point(size = 2) +
+  geom_smooth(method="loess", se = TRUE, color="black") +
+  geom_line(color = "red", linewidth = 0.8) +
+  geom_hline(yintercept = 0.5, 
+             linetype = "dotted", 
+             color = "blue",
+             linewidth = 0.5) + 
+  ggtitle("Miami Heat Win Percentage over Time (1984 to 2017)")
+```
+
+Blue Line indicates an above 0.500 winning season.
+
+
+**Regression of Miami Heat Wins and Gini Coefficient**
+
+```{r}
+reg.allyears.heat <- lm(winpercent ~ gini, data=gini.wins.allyears.heat)
+summ(reg.allyears.heat, digits=5)
+```
+
+Positive correlation between higher salary disparity and winning for the Miami Heat
+
+
+**Regression of Team Wins and Gini Coefficient, Holding Total Team Salary Constant**
+
+```{r}
+reg.allyears.season <- lm(winpercent ~ gini + totalteamsalary, data=gini.wins.allyears)
+summ(reg.allyears.season, digits=5)
+```
+
+When holding totalteamsalary constant:
+Less positive correlation between higher salary disparity and winning for the Miami Heat
+Lower p-value (more significant)
+
+
+# 1.2 League analysis
 
 **Gini coefficient over Time**
 
@@ -78,15 +166,6 @@ ggplot(data = gini.allyears, aes(x = seasonstart, y = gini, color = team)) +
   ggtitle("Gini Salary Coefficient over Time (1984 to 2017)")
 ```
 
-# Team Salary Distribution and Team Wins (1984-2017)
-
-**Merging Team Wins to Team Gini dataset**
-```{r}
-gini.wins.allyears <- left_join(
-  x = gini.allyears, 
-  y = nba.teamwin, 
-  by = c("team", "seasonstart"))
-```
 
 **Correlation between Team Wins and Gini Coefficient**
 ```{r}
@@ -112,7 +191,9 @@ summ(reg.allyears.season, digits=5)
 ```
 
 
-# Team Salary Distribution and Team Wins (2005-2015)
+## Team Salary Distribution and Team Wins (2005-2015)
+
+2005 to 2015 was chosen because 
 
 ```{r}
 gini.2005to2015 <- nba.salaries %>% 
@@ -150,7 +231,7 @@ Superstar Teams in this Era:
 *Super stars: Kobe Bryant, Dwight Howard, Steve Nash, Pau Gasol*
 
 
-# Team Salary Distribution and Team Wins (2005-2015)
+## Team Salary Distribution and Team Wins (2005-2015)
 
 **Merging Team Wins to Team Gini dataset**
 ```{r}
@@ -168,5 +249,32 @@ ggplot(data = gini.wins.2005to2015, aes(x = gini, y = winpercent, color = season
   ggtitle("Gini Salary Coefficient vs. Win Percentage (2005 to 2015)")
 ```
 
+
+**Regression of Team Wins and Gini Coefficient**
+
+```{r}
+reg.2005to2015 <- lm(winpercent ~ gini, data=gini.wins.2005to2015)
+summ(reg.2005to2015, digits=5)
+```
+
+
+**Regression of Team Wins and Gini Coefficient, Holding Seasons Constant**
+
+```{r}
+reg.2005to2015.season <- lm(winpercent ~ gini + seasonstart, data=gini.wins.2005to2015)
+summ(reg.2005to2015.season, digits=5)
+```
+
+**Summary of Regression of Team Wins and Gini Coefficient**
+
+```{r}
+export_summs(reg.allyears, reg.2005to2015,
+               model.names = c("1984-2017","2005-2015")
+             )
+```
+
+
+
+# 1.3 The team in the context of the league
 
 
