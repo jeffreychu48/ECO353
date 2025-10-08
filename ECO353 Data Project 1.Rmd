@@ -99,7 +99,7 @@ nba.salaries.team.2000to2015 <- nba.salaries.team %>%
 #Arranging data by lowest salaries
 nba.salaries.team.2000to2015 %>% 
   arrange(salary) %>% 
-  head(nba.salaries.team.2000to2015, n=3)
+  head(nba.salaries.team.2000to2015, n=2)
 ```
 
 It is observed that salaries that are below the minimum salary for each respective season. For example, the second player on this list, "jonesda02", is 12-year NBA veteran Dahntay Jones, who only has a salary of only $8,819 for the 2015 season on the Cavaliers. Per his basketball reference page (https://www.basketball-reference.com/players/j/jonesda02.html), he only appeared once for the Cavs. After researching further, it's realized that he signed with the Cavs before the last game of the regular season.
