@@ -37,9 +37,6 @@ library(scales)
 
   This project investigates the relationship between salary inequality within teams and team performance in the NBA. The central question is whether paying disproportionately high salaries to superstars—creating higher inequality within a team’s payroll—translates into more wins. This inquiry is motivated by the broader economic debate on whether star talent justifies its premium and whether organizational success is better explained by concentrated investment in individuals or by balanced team building.
 
-  The question explores a wider phenomenon observed in other competitive industries, most notably eSports. In the early stages of games such as *Dota 2*, professional structures were still developing, and organizations lacked the resources, infrastructure, and support networks that are now commonplace. As a result, individual superstars were able to dominate the competitive landscape, often carrying teams to success through sheer skill and talent. However, as the industry matured, teams began to invest in systematic practice routines, coaching staff, analysts, and organizational frameworks designed to maximize team performance. With this shift, the importance of a single “superstar” diminished relative to the strength of the collective unit, and success increasingly depended on cohesion, role specialization, and coordinated strategy, leading to more balanced salaries within the same organization. 
-
-  This historical precedence raises questions on whether basketball underwent a similar evolution and whether eras have shifted the relationship between salary inequality and team performance in the NBA.
 
 # 1.0 Data Methodology
 
@@ -65,6 +62,22 @@ url <- getURL("https://raw.githubusercontent.com/jeffreychu48/ECO353/refs/heads/
 nba.teamwin <- read.csv(text = url)
 nba.teamwin <- nba.teamwin %>% select(team, record, winpercent, seasonstart)
 ```
+
+```{r, include = FALSE}
+# Creating NBA Conference Lookup
+nba.conference.lookup <- data.frame(
+  team = c("Hawks", "Celtics", "Nets", "Hornets", "Bulls", "Cavaliers", "Pistons", 
+           "Pacers", "Heat", "Bucks", "Knicks", "Magic", "76ers", "Raptors", "Wizards",
+           "Mavericks", "Rockets", "Grizzlies", "Warriors", "Clippers", "Lakers", 
+           "Suns", "Kings", "Timberwolves", "Blazers", "Thunder", "Spurs", "Jazz", 
+           "Nuggets", "Pelicans"),
+  conference = c("East", "East", "East", "East", "East", "East", "East", 
+                 "East", "East", "East", "East", "East", "East", "East", "East",
+                 "West", "West", "West", "West", "West", "West", 
+                 "West", "West", "West", "West", "West", "West", "West", 
+                 "West", "West"))
+```
+
 
 ```{r, include = FALSE}
 # Total Team Salary per Year, by Team
@@ -139,9 +152,9 @@ nba.salaries.team.2000to2015 <- nba.salaries.team.2000to2015 %>%
 ```
 
 
-## Implementing the Gini coefficient to quantify Salary Distribution
+## Variable Analysis
 
-Salary Distribution quantified by using the Gini coefficient. This statistical measure captures the degree of inequality in salary allocation within a fixed 0 – 1 range : a coefficient of zero represents perfect equality (all players earning the same salary), whereas a coefficient closer to one reflects extreme concentration of salary among a small number of players. By applying the Gini coefficient to each team, the analysis quantifies the extent to which compensation structures reflect a star-dominated or more balanced approach. 
+Salary Distribution is quantified by using the Gini coefficient. This statistical measure captures the degree of inequality in salary allocation within a fixed 0 – 1 range : a coefficient of zero represents perfect equality (all players earning the same salary), whereas a coefficient closer to one reflects extreme concentration of salary among a small number of players. By applying the Gini coefficient to each team, the analysis quantifies the extent to which compensation structures reflect a star-dominated or more balanced approach. 
 
 ```{r, include = FALSE}
 gini.2000to2015 <- nba.salaries.team.2000to2015 %>% 
@@ -163,7 +176,7 @@ gini.2000to2015 <- gini.2000to2015 %>%
 ## Salary Distribution and Team Wins (2000-2015)
 
 ```{r, include = FALSE}
-# Merging Team Wins and Revenue to Team Gini dataset
+# Merging Team Wins, Revenue, and Conference to Team Gini dataset
 gini.wins.2000to2015 <- left_join(
   x = gini.2000to2015, 
   y = nba.teamwin, 
@@ -173,21 +186,22 @@ gini.wins.2000to2015 <- left_join(
   x = gini.wins.2000to2015, 
   y = nba.teamrevenue, 
   by = c("team", "seasonstart"))
+
+gini.wins.2000to2015 <- left_join(
+  x = gini.wins.2000to2015,
+  y = nba.conference.lookup,
+  by = "team"
+)
 ```
 
 ```{r}
 gini.wins.2000to2015 %>%
-  select(team, seasonstart, gini, record, winpercent, teamsalary, averageteamsalary, revenue ) %>% 
+  select(team, conference, seasonstart, gini, teamsalary, record, winpercent) %>%
     mutate(
     teamsalary = scales::label_number(big.mark = ",", accuracy = 1)(teamsalary),
-    averageteamsalary = scales::label_number(big.mark = ",", accuracy = 1)(averageteamsalary),
-    revenue = scales::label_number(big.mark = ",", accuracy = 1)(revenue)
   ) %>%
   head(gini.wins.2000to2015, n=3) # 3-row snippet of giniwins dataset
 ```
-
-
-**Gini coefficient over Time**
 
 ```{r, include = FALSE, fig.height=3}
 ggplot(data = gini.wins.2000to2015, aes(x = seasonstart, y = gini)) +
@@ -199,7 +213,7 @@ ggplot(data = gini.wins.2000to2015, aes(x = seasonstart, y = gini)) +
 
 # 1.1 Team analysis
 
-To select a team, an analysis on team revenues is conducted. The graph below shows the Top 3 highest average revenue generating teams from 2000 to 2015, which serves as a good baseline to infer the effects salary distributions. If a team has higher revenues, there may be more opportunities to pay for superstars.
+To select a team, an analysis on team revenues is conducted. The graph below shows the Top 3 highest average revenue-generating teams from 2000 to 2015, which serves as a good baseline to infer the effects of salary distributions. If a team has higher revenues, there may be more opportunities to pay for superstars.
 
 
 ```{r, include = FALSE}
@@ -221,7 +235,7 @@ nba.teamrevenue.average %>%
 
 **Filtering Dataset for the LA Lakers (2000 to 2012)**
 
-It is observed that the Los Angeles Lakers have the second highest average revenue, with the team being an interesting candidate to study due to their strong regular and postseason success in this time period along with multiple superteams (both the Shaq-Kobe, Kobe-Gasol dynasties). This study can seek to answer the question whether building superteams around Kobe with multiple superstars benefitted the team success of the Lakers. 
+It is observed that the Los Angeles Lakers have the second-highest average revenue, with the team being an interesting candidate to study due to their strong regular and postseason success in this time period, along with multiple superteams (both the Shaq-Kobe, Kobe-Gasol dynasties). This study seeks to answer the question of whether building superteams around Kobe with multiple superstars benefited the Lakers' success. 
 
 The decision was made to take only 2000 to 2012 because in the 2012-2013 season Kobe Bryant tore his Achilles and after the injury was never the same, suffering more injuries and a significant decline in play. This provides the analysis with a strong baseline without most of the effects of external factors such as injuries.
 
@@ -284,12 +298,12 @@ reg.2000to2012.lakers <- lm(winpercent ~ gini, data=gini.wins.2000to2012.lakers)
 ```
 
 ```{r}
-## Regression of LA Lakers and Gini Coefficient, Holding Monetary Factors Constant
-reg.2000to2012.lakers.monetary <- lm(winpercent ~ gini + teamsalary + revenue, data=gini.wins.2000to2012.lakers)
+# Regression of LA Lakers Wins and Gini Coefficient, Holding Other Factors Constant
+reg.2000to2012.lakers.multiple <- lm(winpercent ~ gini + teamsalary, data=gini.wins.2000to2012.lakers)
 ```
 
 ```{r, fig.height=2}
-export_summs(reg.2000to2012.lakers, reg.2000to2012.lakers.monetary,
+export_summs(reg.2000to2012.lakers, reg.2000to2012.lakers.multiple,
                model.names = c("Lakers", "Lakers Controlled")
              )
 ```
@@ -309,6 +323,7 @@ ggplot(data = gini.wins.2000to2015, aes(x = gini, y = winpercent, color = season
 ## Regression of Team Wins and Gini Coefficient
 
 ```{r}
+# Regression of NBA Wins and Gini Coefficient
 reg.2000to2015 <- lm(winpercent ~ gini, data=gini.wins.2000to2015)
 ```
 
@@ -316,11 +331,12 @@ reg.2000to2015 <- lm(winpercent ~ gini, data=gini.wins.2000to2015)
 ## Regression of Team Wins and Gini Coefficient, Holding Total Team Salary Constant
 
 ```{r}
-reg.2000to2015.monetary <- lm(winpercent ~ gini + teamsalary + revenue, data=gini.wins.2000to2015)
+# Regression of NBA Wins and Gini Coefficient, Holding Other Factors Constant
+reg.2000to2015.multiple <- lm(winpercent ~ gini + teamsalary + factor(conference), data=gini.wins.2000to2015)
 ```
 
 ```{r}
-export_summs(reg.2000to2015, reg.2000to2015.monetary, 
+export_summs(reg.2000to2015, reg.2000to2015.multiple, 
                model.names = c("League","League Controlled")
              )
 ```
@@ -331,7 +347,7 @@ export_summs(reg.2000to2015, reg.2000to2015.monetary,
 
 ```{r}
 # Summary of Regression of Team Wins and Gini Coefficient
-export_summs(reg.2000to2015, reg.2000to2015.monetary, reg.2000to2012.lakers, reg.2000to2012.lakers.monetary,
+export_summs(reg.2000to2015, reg.2000to2015.multiple, reg.2000to2012.lakers, reg.2000to2012.lakers.multiple,
                model.names = c("League","League Controlled", "Lakers", "Lakers Controlled")
              )
 ```
